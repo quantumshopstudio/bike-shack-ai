@@ -1,6 +1,5 @@
 /*
   <tearable-cover> — full-screen tearable cloth over the gift card page.
-  Feature docs: .claude/features/tearable-cover/ (spec, implementation plan, QA log).
 
   A Verlet cloth grid (ClothSimulation, below) rendered with three.js. Mouse/touch drags
   push the cloth, and sticks over-stretched along the pointer's path tear. Lambert
@@ -29,7 +28,7 @@ if (!customElements.get('tearable-cover')) {
   const CLOTH_SHADOWS = true;
 
   // Auto-clear once this share of the screen is no longer covered by attached cloth
-  // (client decision: 60–70%).
+  // (design decision: 60–70%).
   const AUTO_CLEAR_SHARE = 0.65;
 
   /*
