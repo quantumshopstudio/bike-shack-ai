@@ -103,9 +103,12 @@
     {%- endunless -%}
 
     {{ 'template-giftcard.css' | asset_url | stylesheet_tag }}
+    {{ 'gift-card-polish.css' | asset_url | stylesheet_tag }}
   </head>
 
   <body class="gradient gift-card">
+    {% section 'section-tearable-cover' %}
+
     <header>
       <div class="gift-card__price">
         <h1>
@@ -192,22 +195,23 @@
   document.addEventListener('DOMContentLoaded', function() {
    new QRCode( document.querySelector('.gift-card__qr-code'), {
     text: document.querySelector('.gift-card__qr-code').dataset.identifier,
-    width: 72,
-    height: 72,
+    width: 160,
+    height: 160,
     imageAltText: string.qrImageAlt
     });
   });
-  var template = document.getElementsByTagName("template")[0];
-  var clonedTemplate = template.content.cloneNode(true);
-  var isMessageDisplayed = false
+  var copySuccessTemplate = document.querySelector('.gift-card__buttons template');
+  var copySuccessStatus = document.querySelector('.gift-card__copy-success');
   document
   .querySelector('.gift-card__copy-button')
   .addEventListener('click', () => {
     navigator.clipboard.writeText(document.getElementById('gift-card-code').innerText).then(function () {
-      if (!isMessageDisplayed) {
-        document.querySelector('.gift-card__copy-success').appendChild(clonedTemplate);
-        isMessageDisplayed = true
-      }
+      // Empty the status, then refill it a moment later: screen readers only announce a
+      // change, so this confirms every copy, not just the first (Dawn showed it once).
+      copySuccessStatus.textContent = '';
+      setTimeout(function () {
+        copySuccessStatus.appendChild(copySuccessTemplate.content.cloneNode(true));
+      }, 100);
     });
   });
 </script>

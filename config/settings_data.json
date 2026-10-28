@@ -139,6 +139,23 @@
         "settings": {
           "color_scheme": "scheme-1"
         }
+      },
+      "section-tearable-cover": {
+        "type": "section-tearable-cover",
+        "settings": {
+          "enable": true,
+          "image_desktop": "shopify://shop_images/Bikeshack-cover-for-desktop.jpg",
+          "image_desktop_position": "top_left",
+          "image_mobile": "shopify://shop_images/Bikeshack-cover-for-mobile.jpg",
+          "image_mobile_position": "top_left",
+          "image_alt": "Rip this page apart to unlock your special gift",
+          "instruction_text": "Drag to tear the cover",
+          "button_label": "Reveal page",
+          "show_mode": "once",
+          "wind": true,
+          "ripples": true,
+          "falls": true
+        }
       }
     },
     "content_for_index": [],

@@ -1,0 +1,293 @@
+{{ 'section-scroll-driven-video.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'scroll-driven-video.js' | asset_url }}" defer="defer"></script>
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+{%- assign has_mobile_images = false -%}
+{%- if section.settings.mobile_image_1 != blank or section.settings.mobile_image_2 != blank or section.settings.mobile_image_3 != blank -%}
+  {%- assign has_mobile_images = true -%}
+{%- endif -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <scroll-driven-video
+    class="scroll-driven-video{% unless has_mobile_images %} scroll-driven-video--no-mobile-images{% endunless %}"
+    data-section-id="{{ section.id }}"
+    data-video-url="{{ section.settings.video_url }}"
+    data-has-mobile-images="{{ has_mobile_images }}"
+  >
+    {%- comment -%} Desktop: tall scroll stage with a sticky pinned video. The stage's
+       extra height creates the scroll distance; the browser pins the video while you
+       scroll through it, and JS maps scroll position to video time. The heading lives
+       inside the pin so it stays visible the whole time the video is frozen. {%- endcomment -%}
+    <div
+      class="scroll-driven-video__stage"
+      style="--scroll-length: {{ section.settings.scroll_length | default: 3 }};"
+    >
+      <div class="scroll-driven-video__pin">
+        {%- if section.settings.headline != blank -%}
+          <div class="scroll-driven-video__headline-wrap page-width">
+            <h2 class="h2 scroll-driven-video__headline">{{ section.settings.headline }}</h2>
+          </div>
+        {%- endif -%}
+
+        <div class="scroll-driven-video__video-container">
+          <video
+            class="scroll-driven-video__video"
+            muted
+            playsinline
+            preload="metadata"
+          ></video>
+
+          <div class="scroll-driven-video__tooltips"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-driven-video__image-stack">
+      {%- comment -%} Mobile heading: the desktop heading lives inside the sticky stage,
+         which is hidden below 750px, so it's rendered here too. The image stack is
+         hidden on desktop, so only one heading is ever visible. {%- endcomment -%}
+      {%- if section.settings.headline != blank -%}
+        <h2 class="h2 page-width scroll-driven-video__headline scroll-driven-video__headline--mobile">
+          {{ section.settings.headline }}
+        </h2>
+      {%- endif -%}
+
+      {%- if section.settings.mobile_image_1 != blank -%}
+        {%- assign img1_alt = section.settings.mobile_image_1_alt | default: section.settings.mobile_image_1.alt | default: 'Product image 1' -%}
+        {{ section.settings.mobile_image_1 | image_url: width: 600 | image_tag: class: 'scroll-driven-video__mobile-image', alt: img1_alt }}
+      {%- endif -%}
+
+      {%- if section.settings.mobile_image_2 != blank -%}
+        {%- assign img2_alt = section.settings.mobile_image_2_alt | default: section.settings.mobile_image_2.alt | default: 'Product image 2' -%}
+        {{ section.settings.mobile_image_2 | image_url: width: 600 | image_tag: class: 'scroll-driven-video__mobile-image', alt: img2_alt }}
+      {%- endif -%}
+
+      {%- if section.settings.mobile_image_3 != blank -%}
+        {%- assign img3_alt = section.settings.mobile_image_3_alt | default: section.settings.mobile_image_3.alt | default: 'Product image 3' -%}
+        {{ section.settings.mobile_image_3 | image_url: width: 600 | image_tag: class: 'scroll-driven-video__mobile-image', alt: img3_alt }}
+      {%- endif -%}
+    </div>
+
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'tooltip' -%}
+        <div
+          class="scroll-driven-video__tooltip-data"
+          data-tooltip-id="tooltip-{{ block.id }}"
+          data-tooltip-text="{{ block.settings.tooltip_text | escape }}"
+          data-tooltip-subtext="{{ block.settings.tooltip_subtext | escape }}"
+          data-text-x="{{ block.settings.text_x | default: 15 }}"
+          data-text-y="{{ block.settings.text_y | default: 50 }}"
+          data-pointer-x="{{ block.settings.pointer_x | default: 50 }}"
+          data-pointer-y="{{ block.settings.pointer_y | default: 50 }}"
+          data-start-time="{{ block.settings.start_time | default: 0 }}"
+          data-end-time="{{ block.settings.end_time | default: 5 }}"
+          style="display: none;"
+        ></div>
+      {%- endif -%}
+    {%- endfor -%}
+  </scroll-driven-video>
+</div>
+
+{% schema %}
+{
+  "name": "Scroll-Driven Video",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "headline",
+      "label": "Headline",
+      "placeholder": "Optional section headline"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL",
+      "placeholder": "e.g., https://cdn.shopify.com/...",
+      "info": "Upload video to Shopify CDN. Video must be encoded with all keyframes (no P-frames) and moov atom at file start. Use ffmpeg: ffmpeg -i input.mp4 -c:v libx264 -x264-params keyint=1:min-keyint=1 -movflags faststart output.mp4"
+    },
+    {
+      "type": "range",
+      "id": "scroll_length",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "unit": "x",
+      "label": "Animation scroll length",
+      "default": 3,
+      "info": "How much scrolling it takes to play the full animation, in screen-heights. Higher = slower, more gradual playback."
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image_1",
+      "label": "Mobile Image 1 (Top)"
+    },
+    {
+      "type": "text",
+      "id": "mobile_image_1_alt",
+      "label": "Mobile Image 1 — Alt text",
+      "info": "Describes the image for screen readers. Falls back to the image's own alt text, then \"Product image 1\"."
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image_2",
+      "label": "Mobile Image 2 (Middle)"
+    },
+    {
+      "type": "text",
+      "id": "mobile_image_2_alt",
+      "label": "Mobile Image 2 — Alt text",
+      "info": "Describes the image for screen readers. Falls back to the image's own alt text, then \"Product image 2\"."
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image_3",
+      "label": "Mobile Image 3 (Bottom)"
+    },
+    {
+      "type": "text",
+      "id": "mobile_image_3_alt",
+      "label": "Mobile Image 3 — Alt text",
+      "info": "Describes the image for screen readers. Falls back to the image's own alt text, then \"Product image 3\"."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tooltip",
+      "name": "Tooltip",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tooltip_text",
+          "label": "Tooltip Label",
+          "info": "Short plain-text label. No formatting — keeps the page's heading order valid for accessibility."
+        },
+        {
+          "type": "richtext",
+          "id": "tooltip_subtext",
+          "label": "Tooltip Description"
+        },
+        {
+          "type": "header",
+          "content": "Text Position"
+        },
+        {
+          "type": "range",
+          "id": "text_x",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "Text Horizontal Position",
+          "default": 15,
+          "info": "0% = far left, 100% = far right"
+        },
+        {
+          "type": "range",
+          "id": "text_y",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "Text Vertical Position",
+          "default": 50,
+          "info": "0% = top, 100% = bottom"
+        },
+        {
+          "type": "header",
+          "content": "Pointer Target (optional)"
+        },
+        {
+          "type": "range",
+          "id": "pointer_x",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "unit": "%",
+          "label": "Pointer Target Horizontal",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "pointer_y",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "unit": "%",
+          "label": "Pointer Target Vertical",
+          "default": 50
+        },
+        {
+          "type": "header",
+          "content": "Timing"
+        },
+        {
+          "type": "number",
+          "id": "start_time",
+          "label": "Start Time (seconds)",
+          "placeholder": "0",
+          "default": 0,
+          "info": "When tooltip appears (in seconds)"
+        },
+        {
+          "type": "number",
+          "id": "end_time",
+          "label": "End Time (seconds)",
+          "placeholder": "5",
+          "default": 5,
+          "info": "When tooltip disappears (in seconds)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Scroll-Driven Video"
+    }
+  ]
+}
+{% endschema %}

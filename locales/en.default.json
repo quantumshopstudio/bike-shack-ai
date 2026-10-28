@@ -383,6 +383,12 @@
       "min_error": "This item has a minimum of {{ min }}",
       "max_error": "This item has a maximum of {{ max }}",
       "step_error": "You can only add this item in increments of {{ step }}"
+    },
+    "tearable_cover": {
+      "dialog_label": "Gift card cover",
+      "instruction": "Drag to tear the cover",
+      "reveal_button": "Reveal page",
+      "image_alt": "Rip this page apart to unlock your special gift"
     }
   },
   "localization": {

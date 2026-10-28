@@ -84,3 +84,8 @@
 .rich-text__blocks.right .rich-text__buttons {
   justify-content: flex-end;
 }
+
+/* Accessibility: Ensure color contrast meets WCAG 2.1 AA standards */
+.rich-text__caption {
+  color: #FFFFFF !important;
+}

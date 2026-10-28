@@ -1,0 +1,257 @@
+{%- comment -%}
+  Tearable cover — a full-screen cloth over the gift card page that visitors tear away.
+  Gift-card only: rendered statically from templates/gift_card.liquid. The schema has
+  no preset on purpose, so it can't be added to other templates (the cover art promises
+  a "special gift"). All gift card data on the page comes from Shopify, never from here.
+
+  Without JavaScript the custom element is never defined, so CSS keeps the cover hidden
+  and the gift card page works normally.
+{%- endcomment -%}
+
+{%- liquid
+  assign image_desktop = section.settings.image_desktop | default: section.settings.image_mobile
+  assign image_mobile = section.settings.image_mobile | default: section.settings.image_desktop
+
+  assign show_cover = false
+  if section.settings.enable and image_desktop != blank
+    assign show_cover = true
+  endif
+-%}
+
+{%- if show_cover -%}
+  {%- comment -%}
+    Storage key: per section, per gift card, per image pair — a new card or a new image
+    shows the cover again. The Liquid gift_card object has no id, and the code is the
+    redemption secret, so the card is identified by a one-way hash of its code (never the
+    code itself).
+  {%- endcomment -%}
+  {%- liquid
+    assign card_key = 'none'
+    if gift_card.code != blank
+      assign card_key = gift_card.code | sha256 | slice: 0, 16
+    endif
+  -%}
+  {%- capture storage_key -%}tearable-cover:{{ section.id }}:{{ card_key }}:{{ image_desktop.id }}-{{ image_mobile.id }}{%- endcapture -%}
+
+  {%- liquid
+    assign image_alt = section.settings.image_alt | default: image_desktop.alt
+    if image_alt == blank
+      assign image_alt = 'sections.tearable_cover.image_alt' | t
+    endif
+    assign instruction_text = section.settings.instruction_text
+    if instruction_text == blank
+      assign instruction_text = 'sections.tearable_cover.instruction' | t
+    endif
+    assign button_label = section.settings.button_label
+    if button_label == blank
+      assign button_label = 'sections.tearable_cover.reveal_button' | t
+    endif
+
+    assign srcset_widths = '750,1100,1500,1920,2560' | split: ','
+  -%}
+
+  {%- capture desktop_srcset -%}
+    {%- for width in srcset_widths -%}
+      {%- assign w = width | plus: 0 -%}
+      {%- if image_desktop.width > w -%}{{ image_desktop | image_url: width: w }} {{ w }}w, {% endif -%}
+    {%- endfor -%}
+    {{- image_desktop | image_url: width: image_desktop.width -}} {{ image_desktop.width }}w
+  {%- endcapture -%}
+
+  {%- capture mobile_srcset -%}
+    {%- for width in srcset_widths -%}
+      {%- assign w = width | plus: 0 -%}
+      {%- if image_mobile.width > w -%}{{ image_mobile | image_url: width: w }} {{ w }}w, {% endif -%}
+    {%- endfor -%}
+    {{- image_mobile | image_url: width: image_mobile.width -}} {{ image_mobile.width }}w
+  {%- endcapture -%}
+
+  {{ 'section-tearable-cover.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'tearable-cover.js' | asset_url }}" defer="defer"></script>
+
+  {%- comment -%}
+    Crop anchor per image ("Keep visible when cropping"). Used instead of Shopify's image
+    focal point: that UI is hard to find, and its value can't tell "unset" from "center".
+  {%- endcomment -%}
+  {%- liquid
+    assign positions = 'center:50% 50%|top:50% 0%|top_left:0% 0%|top_right:100% 0%|left:0% 50%|right:100% 50%|bottom:50% 100%' | split: '|'
+    assign position_desktop = '0% 0%'
+    assign position_mobile = '0% 0%'
+    for entry in positions
+      assign pair = entry | split: ':'
+      if pair[0] == section.settings.image_desktop_position
+        assign position_desktop = pair[1]
+      endif
+      if pair[0] == section.settings.image_mobile_position
+        assign position_mobile = pair[1]
+      endif
+    endfor
+  -%}
+  {%- style -%}
+    #TearableCover-{{ section.id }} {
+      --tearable-cover-position-desktop: {{ position_desktop }};
+      --tearable-cover-position-mobile: {{ position_mobile }};
+    }
+  {%- endstyle -%}
+
+  <tearable-cover
+    id="TearableCover-{{ section.id }}"
+    class="tearable-cover"
+    role="dialog"
+    aria-modal="true"
+    aria-label="{{ 'sections.tearable_cover.dialog_label' | t | escape }}"
+    aria-describedby="TearableCoverInstruction-{{ section.id }}"
+    data-three-url="{{ 'three.module.js' | asset_url }}"
+    data-storage-key="{{ storage_key | escape }}"
+    data-show-mode="{{ section.settings.show_mode }}"
+    data-wind="{{ section.settings.wind }}"
+    data-ripples="{{ section.settings.ripples }}"
+    data-falls="{{ section.settings.falls }}"
+    data-design-mode="{{ request.design_mode }}"
+  >
+    <picture class="tearable-cover__picture">
+      <source media="(orientation: portrait)" srcset="{{ mobile_srcset | strip }}" sizes="100vw">
+      <img
+        class="tearable-cover__image"
+        src="{{ image_desktop | image_url: width: 1500 }}"
+        srcset="{{ desktop_srcset | strip }}"
+        sizes="100vw"
+        width="{{ image_desktop.width }}"
+        height="{{ image_desktop.height }}"
+        alt="{{ image_alt | escape }}"
+        loading="eager"
+        fetchpriority="high"
+        draggable="false"
+      >
+    </picture>
+
+    <div class="tearable-cover__panel">
+      <p id="TearableCoverInstruction-{{ section.id }}" class="tearable-cover__instruction">
+        {{ instruction_text | escape }}
+      </p>
+      <button type="button" class="button tearable-cover__reveal" data-tearable-cover-reveal>
+        {{ button_label | escape }}
+      </button>
+    </div>
+  </tearable-cover>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Tearable cover",
+  "tag": "div",
+  "class": "tearable-cover-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable",
+      "label": "Show cover",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_desktop",
+      "label": "Desktop image",
+      "info": "Used on landscape screens. Recommended: 2560 × 1440 px or larger."
+    },
+    {
+      "type": "select",
+      "id": "image_desktop_position",
+      "label": "Desktop image — keep visible when cropping",
+      "options": [
+        { "value": "top_left", "label": "Top left" },
+        { "value": "top", "label": "Top" },
+        { "value": "top_right", "label": "Top right" },
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "top_left",
+      "info": "Screens rarely match the image's shape, so some of it gets cropped. Pick where the important part (logo, headline) sits."
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Mobile image",
+      "info": "Used on portrait screens. Recommended: 1290 × 2796 px or larger. Falls back to the desktop image if empty."
+    },
+    {
+      "type": "select",
+      "id": "image_mobile_position",
+      "label": "Mobile image — keep visible when cropping",
+      "options": [
+        { "value": "top_left", "label": "Top left" },
+        { "value": "top", "label": "Top" },
+        { "value": "top_right", "label": "Top right" },
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "top_left"
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Image description",
+      "default": "Rip this page apart to unlock your special gift",
+      "info": "Read aloud by screen readers. Include any text that's in the image."
+    },
+    {
+      "type": "header",
+      "content": "Text"
+    },
+    {
+      "type": "text",
+      "id": "instruction_text",
+      "label": "Instruction",
+      "default": "Drag to tear the cover"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Reveal button label",
+      "default": "Reveal page",
+      "info": "Lets visitors skip tearing. Always shown, for accessibility."
+    },
+    {
+      "type": "header",
+      "content": "Behavior"
+    },
+    {
+      "type": "select",
+      "id": "show_mode",
+      "label": "Show the cover",
+      "options": [
+        { "value": "once", "label": "Once per gift card" },
+        { "value": "every_visit", "label": "On every visit" }
+      ],
+      "default": "once"
+    },
+    {
+      "type": "checkbox",
+      "id": "wind",
+      "label": "Cloth waves in the wind",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "ripples",
+      "label": "Cloth ripples under the cursor",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "falls",
+      "label": "Remaining cloth falls when mostly torn",
+      "default": true,
+      "info": "When off, the remaining cloth fades out instead."
+    }
+  ]
+}
+{% endschema %}

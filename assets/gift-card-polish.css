@@ -1,0 +1,41 @@
+/*
+  Gift card page polish (feature: tearable-cover).
+  Loaded after Dawn's template-giftcard.css, which is left untouched.
+*/
+
+/* Shopify's QR script renders a <canvas> and an <img> and shows one of them, which can
+   differ by browser (QA: off-centre on Android, where Dawn's `margin: 0 auto` on the img
+   didn't apply). Centring the container centres whichever one is visible. */
+.gift-card__qr-code {
+  display: flex;
+  justify-content: center;
+}
+
+/* QR codes need a light border ("quiet zone") around them to scan reliably. On the dark
+   theme, Shopify's QR image would otherwise sit directly on a dark background. White is
+   intentional: scanners need dark-on-light regardless of the theme's colors. */
+.gift-card__qr-code img,
+.gift-card__qr-code canvas {
+  box-sizing: content-box;
+  padding: 1.2rem;
+  background-color: #fff;
+  border-radius: 0.4rem;
+}
+
+/* Printing the dark theme: browsers drop background colours on paper, which left the
+   theme's white text white-on-white (QA). Print text in black instead, and keep the logo
+   (white lettering) on a small dark tile that is allowed to print. */
+@media print {
+  body {
+    --color-foreground: 0, 0, 0;
+  }
+
+  .gift-card__image-wrapper {
+    width: fit-content;
+    padding: 1.6rem 2rem;
+    border-radius: 0.8rem;
+    background-color: rgb(var(--color-background));
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

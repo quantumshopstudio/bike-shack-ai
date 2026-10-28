@@ -1,0 +1,318 @@
+{{ 'section-modern-product-grid.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'modern-product-grid.js' | asset_url }}" defer="defer"></script>
+
+{%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+  {{ 'component-facets.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+{%- liquid
+  assign target_collection = section.settings.collection | default: collection
+-%}
+
+{%- style -%}
+  .modern-grid-{{ section.id }} {
+    --modern-grid-cols: {{ section.settings.columns_desktop }};
+    --modern-grid-cols-mobile: {{ section.settings.columns_mobile }};
+  }
+
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
+  <div class="page-width">
+    {%- paginate target_collection.products by section.settings.products_per_page -%}
+      {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+        <div
+          class="facets-wrapper{% unless section.settings.enable_filtering %} facets-wrapper--no-filters{% endunless %}"
+          id="main-collection-filters"
+          data-id="{{ section.id }}"
+        >
+          {% render 'facets',
+            results: target_collection,
+            enable_filtering: section.settings.enable_filtering,
+            enable_sorting: section.settings.enable_sorting,
+            filter_type: section.settings.filter_type,
+            paginate: paginate
+          %}
+        </div>
+      {%- endif -%}
+
+      <modern-product-grid class="modern-grid-{{ section.id }}">
+        <div class="modern-grid-container" id="ProductGridContainer">
+          <div class="collection">
+            <div class="loading-overlay gradient"></div>
+          {%- if target_collection.products.size == 0 -%}
+            <div class="modern-grid__empty">
+              <h2 class="h2">
+                {{ 'sections.collection_template.empty' | t -}}
+                <br>
+                {{
+                  'sections.collection_template.use_fewer_filters_html'
+                  | t: link: target_collection.url, class: 'underlined-link link'
+                }}
+              </h2>
+            </div>
+          {%- else -%}
+            <ul
+              id="product-grid"
+              data-id="{{ section.id }}"
+              class="modern-grid"
+              role="list"
+            >
+              {%- for product in target_collection.products -%}
+                {%- liquid
+                  assign lazy_load = true
+                  if forloop.index <= 2
+                    assign lazy_load = false
+                  endif
+
+                  assign has_secondary = false
+                  if product.media[1] != null and section.settings.show_secondary_image
+                    assign has_secondary = true
+                  endif
+
+                  assign ratio = 1
+                  if section.settings.image_ratio == 'portrait'
+                    assign ratio = 0.8
+                  elsif section.settings.image_ratio == 'adapt' and product.featured_media
+                    assign ratio = product.featured_media.aspect_ratio
+                  endif
+                  if ratio == 0 or ratio == null
+                    assign ratio = 1
+                  endif
+
+                  assign product_type_label = product.type | default: 'Product'
+                  assign image_alt = product.featured_media.alt | default: product.title
+                  assign image_alt = product_type_label | append: ': ' | append: image_alt | escape
+                -%}
+                <li class="modern-grid__item">
+                  <a
+                    href="{{ product.url }}"
+                    class="modern-card"
+                    role="link"
+                    data-has-secondary="{{ has_secondary }}"
+                    data-sold-out="{% if product.available == false %}true{% else %}false{% endif %}"
+                    aria-label="{{ product.title | escape }}, {{ product.price | money }}, {% if product.available %}In stock{% else %}Sold out{% endif %}"
+                  >
+                    <div class="modern-card__media" style="--ratio-percent: {{ 1 | divided_by: ratio | times: 100 }}%;">
+                      {%- unless product.available -%}
+                        <span class="modern-card__sold-badge">{{ 'products.product.sold_out' | t | default: 'Sold out' }}</span>
+                      {%- endunless -%}
+                      {%- if product.featured_media -%}
+                        <img
+                          srcset="
+                            {%- if product.featured_media.width >= 165 -%}{{ product.featured_media | image_url: width: 165 }} 165w,{%- endif -%}
+                            {%- if product.featured_media.width >= 360 -%}{{ product.featured_media | image_url: width: 360 }} 360w,{%- endif -%}
+                            {%- if product.featured_media.width >= 533 -%}{{ product.featured_media | image_url: width: 533 }} 533w,{%- endif -%}
+                            {%- if product.featured_media.width >= 720 -%}{{ product.featured_media | image_url: width: 720 }} 720w,{%- endif -%}
+                            {%- if product.featured_media.width >= 940 -%}{{ product.featured_media | image_url: width: 940 }} 940w,{%- endif -%}
+                            {%- if product.featured_media.width >= 1066 -%}{{ product.featured_media | image_url: width: 1066 }} 1066w,{%- endif -%}
+                            {{ product.featured_media | image_url }} {{ product.featured_media.width }}w
+                          "
+                          src="{{ product.featured_media | image_url: width: 533 }}"
+                          sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 130 | divided_by: 4 }}px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)"
+                          alt="{{ image_alt }}"
+                          class="modern-card__media-primary"
+                          {% if lazy_load %}loading="lazy"{% endif %}
+                          width="{{ product.featured_media.width }}"
+                          height="{{ product.featured_media.height }}"
+                        >
+
+                        {%- if has_secondary -%}
+                          <img
+                            srcset="
+                              {%- if product.media[1].width >= 165 -%}{{ product.media[1] | image_url: width: 165 }} 165w,{%- endif -%}
+                              {%- if product.media[1].width >= 360 -%}{{ product.media[1] | image_url: width: 360 }} 360w,{%- endif -%}
+                              {%- if product.media[1].width >= 533 -%}{{ product.media[1] | image_url: width: 533 }} 533w,{%- endif -%}
+                              {%- if product.media[1].width >= 720 -%}{{ product.media[1] | image_url: width: 720 }} 720w,{%- endif -%}
+                              {%- if product.media[1].width >= 940 -%}{{ product.media[1] | image_url: width: 940 }} 940w,{%- endif -%}
+                              {%- if product.media[1].width >= 1066 -%}{{ product.media[1] | image_url: width: 1066 }} 1066w,{%- endif -%}
+                              {{ product.media[1] | image_url }} {{ product.media[1].width }}w
+                            "
+                            src="{{ product.media[1] | image_url: width: 533 }}"
+                            sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 130 | divided_by: 4 }}px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)"
+                            alt=""
+                            aria-hidden="true"
+                            class="modern-card__media-secondary"
+                            loading="lazy"
+                            width="{{ product.media[1].width }}"
+                            height="{{ product.media[1].height }}"
+                          >
+                        {%- endif -%}
+                      {%- else -%}
+                        {{ 'product-apparel-2' | placeholder_svg_tag: 'modern-card__placeholder' }}
+                      {%- endif -%}
+                    </div>
+
+                    <div class="modern-card__info">
+                      <span class="modern-card__title" id="ModernCardTitle-{{ section.id }}-{{ product.id }}">
+                        {{ product.title | escape }}
+                      </span>
+                      <span class="modern-card__price">
+                        {%- if settings.currency_code_enabled -%}
+                          {{ product.price | money_with_currency }}
+                        {%- else -%}
+                          {{ product.price | money }}
+                        {%- endif -%}
+                      </span>
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+
+            {%- if paginate.pages > 1 -%}
+              {% render 'pagination', paginate: paginate, anchor: '' %}
+            {%- endif -%}
+          {%- endif -%}
+          </div>
+        </div>
+      </modern-product-grid>
+    {%- endpaginate -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Modern Product Grid",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "default": 8,
+      "label": "Products per page"
+    },
+    {
+      "type": "header",
+      "content": "Grid layout"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 4,
+      "label": "Desktop columns"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "default": "2",
+      "label": "Mobile columns",
+      "options": [
+        { "value": "1", "label": "1 column" },
+        { "value": "2", "label": "2 columns" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Card settings"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "options": [
+        { "value": "adapt", "label": "Adapt to image" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "square", "label": "Square" }
+      ],
+      "default": "square",
+      "label": "Image ratio"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "default": true,
+      "label": "Show secondary image on hover"
+    },
+    {
+      "type": "header",
+      "content": "Filtering and sorting"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "default": true,
+      "label": "Enable filtering"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "default": true,
+      "label": "Enable sorting"
+    },
+    {
+      "type": "select",
+      "id": "filter_type",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "vertical", "label": "Vertical" },
+        { "value": "drawer", "label": "Drawer" }
+      ],
+      "default": "drawer",
+      "label": "Filter layout"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 36
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modern Product Grid"
+    }
+  ]
+}
+{% endschema %}

@@ -12,6 +12,12 @@
       padding-bottom: {{ section.settings.padding_bottom }}px;
     }
   }
+
+  /* Accessibility: Fix color contrast for dark color schemes */
+  .rich-text.color-scheme-1 .rich-text__caption,
+  .rich-text.color-scheme-2 .rich-text__caption {
+    color: #FFFFFF !important;
+  }
 {%- endstyle -%}
 
 <div class="isolate{% unless section.settings.full_width %} page-width{% endunless %}">
@@ -37,7 +43,9 @@
                 {{ block.shopify_attributes }}
                 {% if settings.animations_reveal_on_scroll %}
                   data-cascade
-                  style="--animation-order: {{ forloop.index }};"
+                  style="--animation-order: {{ forloop.index }}; color: #FFFFFF !important;"
+                {% else %}
+                  style="color: #FFFFFF !important;"
                 {% endif %}
               >
                 {{ block.settings.caption | escape }}

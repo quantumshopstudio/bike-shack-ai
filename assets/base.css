@@ -3595,3 +3595,12 @@ details-disclosure > details {
     transform: translateX(100%) scaleX(0);
   }
 }
+
+/* Accessibility: Global color contrast fixes for dark color schemes */
+.rich-text__caption {
+  color: #FFFFFF !important;
+}
+
+.multicolumn .title.h1.inline-richtext {
+  color: #FFFFFF !important;
+}

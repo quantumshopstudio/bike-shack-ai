@@ -1,0 +1,162 @@
+/*
+  Tearable cover — full-screen cloth over the gift card page.
+  Self-contained: the gift card template loads template-giftcard.css, not base.css.
+  Colors come from the theme's main color scheme variables set in gift_card.liquid.
+*/
+
+/* No JavaScript = the element is never defined = no cover, page stays usable. */
+tearable-cover:not(:defined) {
+  display: none;
+}
+
+.tearable-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: block;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: rgb(var(--color-background));
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: opacity 0.3s ease;
+}
+
+.tearable-cover[hidden] {
+  display: none;
+}
+
+/* Reveal: fade out, then JS sets [hidden]. */
+.tearable-cover.is-revealing {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tearable-cover {
+    transition: none;
+  }
+}
+
+/* While the cover is up the page behind can't scroll (JS also makes it inert). */
+html.tearable-cover-open,
+html.tearable-cover-open body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.tearable-cover__picture,
+.tearable-cover__image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tearable-cover__image {
+  object-fit: cover;
+  object-position: var(--tearable-cover-position-desktop, 0% 0%);
+  -webkit-user-drag: none;
+}
+
+/* Matches the <source media="(orientation: portrait)"> that swaps in the mobile image. */
+@media (orientation: portrait) {
+  .tearable-cover__image {
+    object-position: var(--tearable-cover-position-mobile, 0% 0%);
+  }
+}
+
+/* three.js canvas, drawn over the picture once its first frame is ready.
+   The picture uses opacity (not visibility) so its alt text stays in the
+   accessibility tree; the canvas itself is aria-hidden. */
+.tearable-cover__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+.tearable-cover.is-cloth-ready .tearable-cover__canvas {
+  opacity: 1;
+}
+
+.tearable-cover.is-cloth-ready .tearable-cover__picture {
+  opacity: 0;
+}
+
+/* Holes in the cloth must show the page underneath, so the cover's own background goes
+   transparent once the canvas has taken over (the static cover keeps it while loading). */
+.tearable-cover.is-cloth-ready {
+  background: transparent;
+}
+
+/* Clearing (auto-clear, Reveal or Escape): the instruction panel fades out first. */
+.tearable-cover.is-clearing .tearable-cover__panel {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Instruction + Reveal button on a translucent scrim so the text keeps its contrast
+   over any part of the image (WCAG 1.4.3). */
+.tearable-cover__panel {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 10.4rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  width: max-content;
+  max-width: calc(100% - 3.2rem);
+  padding: 1.6rem 2rem;
+  border-radius: 1.2rem;
+  background: rgba(var(--color-background), 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: rgb(var(--color-foreground));
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+
+.tearable-cover__instruction {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.4;
+  letter-spacing: 0.06rem;
+}
+
+@media screen and (min-width: 750px) {
+  .tearable-cover__panel {
+    flex-direction: row;
+    gap: 2rem;
+    bottom: 11.2rem;
+    padding: 1.2rem 1.2rem 1.2rem 2.4rem;
+  }
+}
+
+/* Short landscape screens (phones turned sideways): the raised panel would sit on the
+   headline, so it drops back near the bottom edge and stays on one row (QA: covered
+   "APART" on Android landscape). */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .tearable-cover__panel {
+    flex-direction: row;
+    gap: 1.6rem;
+    bottom: 1.2rem;
+    padding: 0.8rem 0.8rem 0.8rem 1.6rem;
+  }
+}
+
+@media print {
+  .tearable-cover {
+    display: none !important;
+  }
+}

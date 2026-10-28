@@ -25,6 +25,24 @@
       padding-bottom: {{ section.settings.padding_bottom }}px;
     }
   }
+
+  /* Accessibility: Fix color contrast for dark color schemes */
+  .footer.color-scheme-2 .footer-block__heading,
+  .footer.color-scheme-2 .footer-block__newsletter .field__label,
+  .footer.color-scheme-2 .footer-block__newsletter .field__input,
+  .footer.color-scheme-2 .copyright__content,
+  .footer.color-scheme-2 .copyright__content a,
+  .footer.color-scheme-2 .footer-block__details-content .list-menu__item--link {
+    color: #FFFFFF !important;
+  }
+
+  .footer.color-scheme-2 .footer-block__newsletter .field__input {
+    border-color: #FFFFFF !important;
+  }
+
+  .footer.color-scheme-2 .footer-block__newsletter .field__input::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
 {%- endstyle -%}
 
 <footer class="footer color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding">
@@ -76,7 +94,7 @@
                 {% endif %}
               >
                 {%- if block.settings.heading != blank -%}
-                  <h2 class="footer-block__heading inline-richtext">{{- block.settings.heading -}}</h2>
+                  <h2 class="footer-block__heading inline-richtext" style="color: #FFFFFF !important;">{{- block.settings.heading -}}</h2>
                 {%- endif -%}
 
                 {%- case block.type -%}
@@ -159,8 +177,10 @@
           </div>
         {%- endif -%}
 
-        <div
+        <section
           class="footer-block--newsletter{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+          role="region"
+          aria-label="Newsletter signup"
           {% if settings.animations_reveal_on_scroll %}
             data-cascade
           {% endif %}
@@ -168,7 +188,7 @@
           {%- if section.settings.newsletter_enable -%}
             <div class="footer-block__newsletter">
               {%- if section.settings.newsletter_heading != blank -%}
-                <h2 class="footer-block__heading inline-richtext">{{ section.settings.newsletter_heading }}</h2>
+                <h2 class="footer-block__heading inline-richtext" style="color: #FFFFFF !important;">{{ section.settings.newsletter_heading }}</h2>
               {%- endif -%}
               {%- form 'customer', id: 'ContactFooter', class: 'footer__newsletter newsletter-form' -%}
                 <input type="hidden" name="contact[tags]" value="newsletter">
@@ -180,6 +200,7 @@
                       name="contact[email]"
                       class="field__input"
                       value="{{ form.email }}"
+                      style="color: #FFFFFF !important; border-color: #FFFFFF !important;"
                       aria-required="true"
                       autocorrect="off"
                       autocapitalize="off"
@@ -194,7 +215,7 @@
                       placeholder="{{ 'newsletter.label' | t }}"
                       required
                     >
-                    <label class="field__label" for="NewsletterForm--{{ section.id }}">
+                    <label class="field__label" for="NewsletterForm--{{ section.id }}" style="color: #FFFFFF !important;">
                       {{ 'newsletter.label' | t }}
                     </label>
                     <button
@@ -245,7 +266,7 @@
           {%- if section.settings.show_social and has_social_icons -%}
             {%- render 'social-icons', class: 'footer__list-social' -%}
           {%- endif -%}
-        </div>
+        </section>
       </div>
     {%- endunless -%}
   {%- endif -%}
@@ -299,17 +320,17 @@
     </div>
     <div class="footer__content-bottom-wrapper page-width{% if section.settings.enable_country_selector == false and section.settings.enable_language_selector == false %} footer__content-bottom-wrapper--center{% endif %}">
       <div class="footer__copyright caption">
-        <small class="copyright__content"
-          >&copy; {{ 'now' | date: '%Y' }}, {{ shop.name | link_to: routes.root_url -}}
+        <small class="copyright__content" style="color: #FFFFFF !important;"
+          >&copy; {{ 'now' | date: '%Y' }}, <a href="{{ routes.root_url }}" style="color: #FFFFFF !important;">{{ shop.name }}</a>
         </small>
-        <small class="copyright__content">{{ powered_by_link }}</small>
+        <small class="copyright__content" style="color: #FFFFFF !important;">{{ powered_by_link }}</small>
         {%- if section.settings.show_policy -%}
           <ul class="policies list-unstyled">
             {%- for policy in shop.policies -%}
               {%- if policy != blank -%}
                 <li>
-                  <small class="copyright__content"
-                    ><a href="{{ policy.url }}">{{ policy.title | escape }}</a></small
+                  <small class="copyright__content" style="color: #FFFFFF !important;"
+                    ><a href="{{ policy.url }}" style="color: #FFFFFF !important;">{{ policy.title | escape }}</a></small
                   >
                 </li>
               {%- endif -%}

@@ -2,6 +2,11 @@
   margin: 0;
 }
 
+/* Accessibility: Ensure color contrast meets WCAG 2.1 AA standards */
+.multicolumn .title.h1.inline-richtext {
+  color: #FFFFFF !important;
+}
+
 .multicolumn.no-heading .title {
   display: none;
 }

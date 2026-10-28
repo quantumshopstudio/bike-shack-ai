@@ -1,0 +1,394 @@
+/* ==========================================================================
+   Modern Product Grid
+   ========================================================================== */
+
+/* Grid layout
+   ========================================================================== */
+
+.modern-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--modern-grid-cols, 4), minmax(0, 1fr));
+  gap: 1.6rem 1.2rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Staggered layout — desktop only */
+@media screen and (min-width: 750px) {
+  .modern-grid__item:nth-child(even) {
+    margin-top: 2rem;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .modern-grid {
+    grid-template-columns: repeat(var(--modern-grid-cols-mobile, 2), minmax(0, 1fr));
+    gap: 1rem 0.8rem;
+  }
+}
+
+.modern-grid__item {
+  position: relative;
+  min-width: 0;
+}
+
+/* Container constraints — prevent mobile overflow
+   ========================================================================== */
+
+.modern-grid-container,
+.modern-grid-container .collection {
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Empty state
+   ========================================================================== */
+
+.modern-grid__empty {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+/* Card — clipped L-shape. Rectangle with a bottom-right notch cut out.
+   Title and price sit in the cutout area, outside the clipped card shape
+   but inside the DOM link for semantics & click target.
+
+   Border is traced via two stacked clipped pseudo-elements:
+     ::before = border color, full size
+     ::after  = card background, inset 1px
+   The 1px of ::before showing around ::after forms a crisp, anti-alias-free
+   outline that follows the notch diagonal with rounded corners.
+   ========================================================================== */
+
+.modern-card {
+  /* Info cutout dimensions — all in rem so the 1px/2px inset math
+     produces a uniform border width on every edge (including the short
+     vertical notch-left segment). Percentage widths would cause the
+     internal edges to only shift by a sub-pixel fraction. */
+  --info-w: 13.75rem;
+  --info-h: 3rem;
+  --info-diag: 0.8rem;
+  --card-shape: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--info-h)),
+    calc(100% - var(--info-w) + var(--info-diag)) calc(100% - var(--info-h)),
+    calc(100% - var(--info-w)) calc(100% - var(--info-h) + var(--info-diag)),
+    calc(100% - var(--info-w)) 100%,
+    0 100%
+  );
+  --border-color: rgba(var(--color-foreground), 0.35);
+  display: block;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+  /* Padding establishes the inner inset for the border ring. Using padding
+     on the parent (not margin on the child) avoids margin-collapse that
+     would erase the top/bottom 1px of the border. */
+  padding: 1px;
+  transition: padding 300ms ease;
+  /* Rounded outer corners on the border */
+  border-radius: 0.8rem;
+}
+
+.modern-card::before,
+.modern-card::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  clip-path: var(--card-shape);
+  border-radius: 0.8rem;
+}
+
+/* Outer layer — border color, full card shape */
+.modern-card::before {
+  inset: 0;
+  background-color: var(--border-color);
+  z-index: 0;
+  transition: background-color 300ms ease;
+}
+
+/* Inner layer — card fill, inset matches parent padding so the outer layer
+   reads as a border ring of the same thickness as padding. */
+.modern-card::after {
+  inset: 1px;
+  background-color: rgb(var(--color-background));
+  z-index: 1;
+  transition: inset 300ms ease;
+}
+
+/* Card media — image lives inside the clipped card shape, contained within the border.
+   ========================================================================== */
+
+.modern-card__media {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(var(--color-foreground), 0.03);
+  clip-path: var(--card-shape);
+  z-index: 2;
+  border-radius: 0.8rem;
+}
+
+/* Aspect ratio — default square, overridden by --ratio-percent for adapt */
+.modern-card__media::before {
+  content: '';
+  display: block;
+  padding-top: var(--ratio-percent, 100%);
+}
+
+.modern-card__media-primary,
+.modern-card__media-secondary {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modern-card__media-primary {
+  transition: transform 300ms ease;
+}
+
+/* Secondary image — hidden by default, top-to-bottom reveal */
+.modern-card__media-secondary {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 300ms ease;
+  z-index: 1;
+}
+
+/* Placeholder SVG */
+.modern-card__placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: rgba(var(--color-foreground), 0.1);
+}
+
+/* Card info — positioned in the bottom-right cutout area, outside the
+   clipped card shape. Transparent background so the section bg shows
+   through. Title/price flushed right.
+   ========================================================================== */
+
+.modern-card__info {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: calc(var(--info-w) - var(--info-diag));
+  height: var(--info-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0 0.6rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+  z-index: 3;
+}
+
+/* Mobile — smaller cutout, shallower diagonal */
+@media screen and (max-width: 749px) {
+  .modern-card {
+    --info-w: 12.5rem;
+    --info-h: 2.4rem;
+    --info-diag: 0.6rem;
+  }
+
+  .modern-card__info {
+    padding: 0 0.4rem;
+    gap: 0.4rem;
+  }
+}
+
+/* Title and price
+   ========================================================================== */
+
+.modern-card__title {
+  flex: 1 1 auto;
+  font-size: 1.12rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgb(var(--color-foreground));
+  min-width: 0;
+}
+
+.modern-card__price {
+  font-size: 0.96rem;
+  font-weight: 400;
+  color: rgb(var(--color-foreground));
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media screen and (max-width: 749px) {
+  .modern-card__title {
+    font-size: 0.96rem;
+  }
+
+  .modern-card__price {
+    font-size: 0.8rem;
+  }
+}
+
+/* Hover effects — desktop only
+   ========================================================================== */
+
+/* Accent border on hover — thicker (2px) and swaps to accent color.
+   Parent padding grows 1→2px, inner layer inset grows 1→2px in sync,
+   so the visible border ring expands uniformly on all sides. */
+@media (hover: hover) {
+  .modern-card:hover {
+    padding: 2px;
+  }
+  .modern-card:hover::before {
+    background-color: rgb(var(--color-button));
+  }
+  .modern-card:hover::after {
+    inset: 2px;
+  }
+}
+
+/* Top-to-bottom reveal — JS-driven via .is-hovering class */
+.modern-card.is-hovering .modern-card__media-secondary {
+  clip-path: inset(0 0 0 0);
+}
+
+/* CSS-only fallback when JS hasn't loaded */
+@media (hover: hover) {
+  .modern-card:hover .modern-card__media-secondary {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Scale fallback for single-image cards */
+@media (hover: hover) {
+  .modern-card[data-has-secondary="false"]:hover .modern-card__media-primary {
+    transform: scale(1.03);
+  }
+}
+
+/* Disable hover on touch devices */
+@media (hover: none) {
+  .modern-card__media-secondary {
+    clip-path: inset(100% 0 0 0) !important;
+  }
+
+  .modern-card__media-primary {
+    transform: none !important;
+  }
+}
+
+/* Focus states — keyboard accessibility
+   ========================================================================== */
+
+.modern-card:focus-visible {
+  outline: 2px solid rgb(var(--color-button));
+  outline-offset: 2px;
+  padding: 2px;
+}
+
+.modern-card:focus-visible::before {
+  background-color: rgb(var(--color-button));
+}
+
+.modern-card:focus-visible::after {
+  inset: 2px;
+}
+
+/* Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .modern-card,
+  .modern-card__media-primary,
+  .modern-card__media-secondary {
+    transition: none;
+  }
+}
+
+/* Sold out treatment
+   ========================================================================== */
+
+.modern-card[data-sold-out="true"] .modern-card__media {
+  opacity: 0.5;
+}
+
+.modern-card__sold-badge {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgb(var(--color-foreground));
+  background-color: rgba(var(--color-background), 0.85);
+  border: 1px solid rgba(var(--color-foreground), 0.35);
+  border-radius: 0.4rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Sort dropdown — force readable contrast
+   ========================================================================== */
+
+#SortBy,
+#SortBy-mobile,
+.facet-filters__sort,
+facet-filters-form select,
+facet-filters-form .select__select,
+.mobile-facets select,
+.mobile-facets .select__select {
+  color: #1f1f21 !important;
+  background-color: #ffffff !important;
+}
+
+#SortBy option,
+#SortBy-mobile option,
+.facet-filters__sort option,
+facet-filters-form select option,
+facet-filters-form .select__select option,
+.mobile-facets select option,
+.mobile-facets .select__select option {
+  color: #1f1f21 !important;
+  background-color: #ffffff !important;
+}
+
+/* Loading overlay for facets AJAX
+   ========================================================================== */
+
+.modern-grid-container {
+  position: relative;
+}
+
+.modern-grid-container .loading-overlay {
+  display: none;
+}
+
+.modern-grid-container.loading .loading-overlay {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--color-background), 0.7);
+  z-index: 10;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pagination spacing
+   ========================================================================== */
+
+.modern-grid-container .pagination-wrapper {
+  margin-top: 3rem;
+}

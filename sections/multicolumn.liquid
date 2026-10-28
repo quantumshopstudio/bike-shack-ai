@@ -13,6 +13,12 @@
       padding-bottom: {{ section.settings.padding_bottom }}px;
     }
   }
+
+  /* Accessibility: Fix color contrast for dark color schemes */
+  .multicolumn.color-scheme-1 .title.inline-richtext,
+  .multicolumn.color-scheme-2 .title.inline-richtext {
+    color: #FFFFFF !important;
+  }
 {%- endstyle -%}
 
 {%- liquid
@@ -32,7 +38,7 @@
   >
     {%- unless section.settings.title == blank -%}
       <div class="title-wrapper-with-link title-wrapper--self-padded-mobile title-wrapper--no-top-margin multicolumn__title">
-        <h2 class="title inline-richtext {{ section.settings.heading_size }}">
+        <h2 class="title inline-richtext {{ section.settings.heading_size }}" style="color: #FFFFFF !important;">
           {{ section.settings.title }}
         </h2>
         {%- if section.settings.button_label != blank and show_mobile_slider -%}

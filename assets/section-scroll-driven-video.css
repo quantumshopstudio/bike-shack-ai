@@ -1,0 +1,248 @@
+.scroll-driven-video {
+  display: block;
+  width: 100%;
+  outline: none;
+}
+
+.scroll-driven-video:focus {
+  outline: 2px solid #4299e1;
+  outline-offset: 2px;
+}
+
+.scroll-driven-video__headline {
+  margin-bottom: 0;
+  text-align: left;
+}
+
+/* Heading overlay — pinned at the top of the sticky area so it stays
+   visible the whole time the video is frozen and animating. */
+.scroll-driven-video__headline-wrap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  z-index: 5;
+  padding-top: 40px;
+  pointer-events: none;
+}
+
+/* Tall scroll track — its extra height is what creates the scroll distance.
+   --scroll-length is the number of screen-heights of scroll for the full animation. */
+.scroll-driven-video__stage {
+  position: relative;
+  width: 100%;
+  height: calc(var(--scroll-length, 3) * 100vh);
+}
+
+/* Sticky pin — the browser holds this in place while the stage scrolls past,
+   producing the "viewport locked while animating" effect with zero JS scroll-fighting. */
+.scroll-driven-video__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Transparent so the letterbox areas blend into the section background
+     instead of showing as black bars beside the contained video. */
+  background-color: transparent;
+}
+
+.scroll-driven-video__video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-driven-video__video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.scroll-driven-video__image-stack {
+  display: none;
+}
+
+.scroll-driven-video__image-stack.is-active {
+  display: block;
+}
+
+.scroll-driven-video__mobile-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.scroll-driven-video__mobile-image:last-child {
+  margin-bottom: 0;
+}
+
+.scroll-driven-video__tooltips {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scroll-driven-video__pointers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* WCAG 1.4.11 — keeps the white pointer line/crescent distinguishable
+     even when it crosses a light area of the video. */
+  filter: drop-shadow(0 0 2.5px rgba(0, 0, 0, 0.95));
+}
+
+.scroll-driven-video__tooltip {
+  position: absolute;
+  /* WCAG 1.4.3 — semi-transparent scrim + blur behind the text guarantees
+     contrast against whatever (moving, unpredictable) video frame sits behind it. */
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+  max-width: 320px;
+  z-index: 10;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+}
+
+.scroll-driven-video__tooltip-label {
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+  font-family: inherit;
+  position: relative;
+  z-index: 11;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.scroll-driven-video__tooltip-description {
+  font-size: 1.28rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: #ffffff;
+  font-family: inherit;
+  position: relative;
+  z-index: 11;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.scroll-driven-video__tooltip.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scroll-driven-video__tooltip:focus {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+/* Mobile heading sits above the image stack; spacing applies wherever the
+   stack is shown (mobile breakpoint or reduced-motion fallback). */
+.scroll-driven-video__headline--mobile {
+  margin-bottom: 1.5rem;
+}
+
+@media screen and (max-width: 749px) {
+  .scroll-driven-video__stage {
+    display: none;
+    height: auto;
+  }
+
+  .scroll-driven-video__image-stack {
+    display: block;
+  }
+
+  .scroll-driven-video__tooltips {
+    display: none;
+  }
+
+  .scroll-driven-video__headline {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* WCAG 2.3.3 Animation from Interactions — for users who ask for reduced motion,
+   skip the scroll-driven scrubbing entirely and show the same static image-stack
+   fallback used on mobile. No pinning, no tall scroll track, no motion. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-driven-video__stage {
+    display: none;
+    height: auto;
+  }
+
+  .scroll-driven-video__image-stack {
+    display: block;
+  }
+
+  .scroll-driven-video__tooltips {
+    display: none;
+  }
+}
+
+/* Reduced-motion on larger screens: lay the fallback images out in a row at
+   ~1/3 width each so they aren't stretched (and blurred) across the full width. */
+@media (prefers-reduced-motion: reduce) and (min-width: 750px) {
+  .scroll-driven-video__image-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .scroll-driven-video__headline--mobile {
+    flex: 0 0 100%;
+  }
+
+  .scroll-driven-video__mobile-image {
+    width: 31%;
+    margin-bottom: 0;
+  }
+}
+
+/* Fallback when the merchant set NO mobile images: instead of an empty section,
+   reduced-motion users see a static (non-scrubbing) frame of the video. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-driven-video--no-mobile-images .scroll-driven-video__stage {
+    display: block;
+    height: auto;
+  }
+
+  .scroll-driven-video--no-mobile-images .scroll-driven-video__pin {
+    position: static;
+    height: auto;
+  }
+
+  .scroll-driven-video--no-mobile-images .scroll-driven-video__video-container {
+    height: auto;
+  }
+
+  .scroll-driven-video--no-mobile-images .scroll-driven-video__video {
+    height: auto;
+    max-height: 80vh;
+  }
+}

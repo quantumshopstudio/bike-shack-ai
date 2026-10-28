@@ -220,7 +220,7 @@
       "settings": {
         "desktop_content_position": "center",
         "content_alignment": "center",
-        "color_scheme": "",
+        "color_scheme": "scheme-2",
         "full_width": true,
         "padding_top": 60,
         "padding_bottom": 0
@@ -277,11 +277,78 @@
         "columns_desktop": 3,
         "column_alignment": "left",
         "background_style": "none",
-        "color_scheme": "",
+        "color_scheme": "scheme-2",
         "columns_mobile": "1",
         "swipe_on_mobile": false,
         "padding_top": 0,
         "padding_bottom": 36
+      }
+    },
+    "section_scroll_driven_video_xtbary": {
+      "type": "section-scroll-driven-video",
+      "blocks": {
+        "tooltip_fKh46E": {
+          "type": "tooltip",
+          "name": "Tooltip - Polarized Lens",
+          "settings": {
+            "tooltip_text": "<h5>Next-Gen Polarized Lens</h5>",
+            "tooltip_subtext": "<p>Protecting your eyes from harmful sun rays and keep you moving on the trail.</p>",
+            "text_x": 25,
+            "text_y": 50,
+            "pointer_x": 40,
+            "pointer_y": 50,
+            "start_time": 1,
+            "end_time": 3.5
+          }
+        },
+        "tooltip_GQiXiL": {
+          "type": "tooltip",
+          "name": "Tooltip - Shock Absorption ",
+          "settings": {
+            "tooltip_text": "<h5>Enhanced Shock Absorption Technolgy</h5>",
+            "tooltip_subtext": "<p>Industry rated shock and impact resistance.</p>",
+            "text_x": 85,
+            "text_y": 65,
+            "pointer_x": 65,
+            "pointer_y": 65,
+            "start_time": 2,
+            "end_time": 4
+          }
+        },
+        "tooltip_BLGBD7": {
+          "type": "tooltip",
+          "name": "Tooltip - Dust Cover",
+          "settings": {
+            "tooltip_text": "<h5>Tailored Dust Cover</h5>",
+            "tooltip_subtext": "<p>Clean breathing filtration system.</p>",
+            "text_x": 35,
+            "text_y": 85,
+            "pointer_x": 45,
+            "pointer_y": 85,
+            "start_time": 2.5,
+            "end_time": 4.5
+          }
+        }
+      },
+      "block_order": [
+        "tooltip_fKh46E",
+        "tooltip_GQiXiL",
+        "tooltip_BLGBD7"
+      ],
+      "name": "Scroll-Driven Video",
+      "settings": {
+        "headline": "Product Showcase",
+        "video_url": "https://cdn.shopify.com/videos/c/o/v/64d80c64f83e4fb184f5a8441927dac4.mp4",
+        "scroll_length": 3,
+        "mobile_image_1": "shopify://shop_images/mobile1.jpg",
+        "mobile_image_1_alt": "Left side of helmet mobile image",
+        "mobile_image_2": "shopify://shop_images/mobile2.jpg",
+        "mobile_image_2_alt": "front of helmet mobile image",
+        "mobile_image_3": "shopify://shop_images/mobile3.jpg",
+        "mobile_image_3_alt": "xray front of helmet mobile image",
+        "color_scheme": "",
+        "padding_top": 40,
+        "padding_bottom": 40
       }
     },
     "featured_collection_HyDEKy": {
@@ -339,6 +406,7 @@
     "image_with_text_xwwHBh",
     "rich_text_Hph9wk",
     "multicolumn_XJqPbz",
+    "section_scroll_driven_video_xtbary",
     "featured_collection_HyDEKy",
     "featured_blog_RHMU7p"
   ]
